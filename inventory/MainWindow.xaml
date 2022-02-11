@@ -5,9 +5,17 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:inventory"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="528">
-    <Grid Margin="23,44,99,76"
+        Title="MainWindow" Height="924" Width="891">
+    <Grid Margin="23,44,154,76"
           Name ="MainGrid"
-     />
+     >
+        <DataGrid 
+              Name ="dg"
+              SelectedCellsChanged="dg_SelectedCellsChanged" Margin="10,10,10,422"
+         />
+        <DataGrid 
+            Name ="dg2" Margin="10,394,10,72"
+         />
+    </Grid>
 
 </Window>
