@@ -268,10 +268,15 @@ namespace inventory
         {
         }
 
-        private void RadioButton_Checked(object sender, RoutedEventArgs e)
+        private void InboundRadio_Checked(object sender, RoutedEventArgs e)
         {
-
+            
         }
+        private void OutboundRadio_Checked(object sender, RoutedEventArgs e)
+        {
+            
+        }
+        
         private void updateledger ()
         {
             foreach (string key in ledgerinfo.Keys)
@@ -323,21 +328,48 @@ namespace inventory
         }
         private void ConfirmLedger_Click(object sender, RoutedEventArgs e)
         {
-            foreach (string key in ledgerinfo.Keys)
+            if ((bool)InboundRadio.IsChecked)
             {
-                int i = 0;
-                string[] Inserts = { "", "" };
-                foreach (string innerKey in ledgerinfo[key].Keys)
+                foreach (string key in ledgerinfo.Keys)
                 {
-                    System.Console.WriteLine("{0}\t{1}\t{2}", key, innerKey, ledgerinfo[key][innerKey]);
-                    //dict[key][innerKey];
-                    Inserts[i] = ledgerinfo[key][innerKey];
-                    System.Console.WriteLine("{0}", i);
-                    i++;
+                    int i = 0;
+                    string[] Inserts = { "", "" };
+                    foreach (string innerKey in ledgerinfo[key].Keys)
+                    {
+                        System.Console.WriteLine("{0}\t{1}\t{2}", key, innerKey, ledgerinfo[key][innerKey]);
+                        //dict[key][innerKey];
+                        Inserts[i] = ledgerinfo[key][innerKey];
+                        System.Console.WriteLine("{0}", i);
+                        i++;
+                    }
+                    newBook(key, Inserts[0], Inserts[1]);
                 }
-                newBook(key, Inserts[0], Inserts[1]);
+                updatedg1();
             }
-            updatedg1();
+            else if ((bool)OutboundRadio.IsChecked)
+            {   
+                foreach (string key in ledgerinfo.Keys)
+                {
+                    if (info.ContainsKey(key))
+                    {
+                        int infoquantity = int.Parse(info[key]["quantity"]);
+                        int ledgerquantity = int.Parse(ledgerinfo[key]["quantity"]);
+                        if (infoquantity >= ledgerquantity)
+                        {
+                            info[key]["quantity"] = (infoquantity - ledgerquantity).ToString();
+                            updatedg1();
+                        }
+                        else
+                        {
+                            MessageBox.Show("Not Enough Stock!");
+                        }
+                    }
+                    else
+                    {
+                        MessageBox.Show("Key not Found!");
+                    }
+                }
+            }
         }
     }
 }

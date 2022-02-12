@@ -16,8 +16,8 @@
          />
             <Button Margin="10,323,187,24" Click="ConfirmLedger_Click" Content="Confirm"/>
             <StackPanel HorizontalAlignment="Left" Height="33" Margin="0,10,0,0" VerticalAlignment="Top" Width="238" Orientation="Horizontal">
-                <RadioButton Content="Inbound" Height="22" Width="112"/>
-                <RadioButton Content="Outbound" Height="22" Width="92"/>
+                <RadioButton x:Name="InboundRadio" Checked="InboundRadio_Checked" IsChecked="true" Content="Inbound" Height="22" Width="112"/>
+                <RadioButton x:Name="OutboundRadio" Checked="OutboundRadio_Checked" Content="Outbound" Height="22" Width="92"/>
             </StackPanel>
         </Grid>
 
