@@ -20,8 +20,4 @@
     </COMReference>
   </ItemGroup>
 
-  <ItemGroup>
-    <Resource Include="chars trans.png" />
-  </ItemGroup>
-
 </Project>
