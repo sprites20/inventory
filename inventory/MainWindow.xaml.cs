@@ -26,99 +26,19 @@ namespace inventory
     /// 
     public partial class MainWindow : Window
     {
-        internal static class ConsoleAllocator
-        {
-            [DllImport(@"kernel32.dll", SetLastError = true)]
-            static extern bool AllocConsole();
-
-            [DllImport(@"kernel32.dll")]
-            static extern IntPtr GetConsoleWindow();
-
-            [DllImport(@"user32.dll")]
-            static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
-
-            const int SwHide = 0;
-            const int SwShow = 5;
-
-
-            public static void ShowConsoleWindow()
-            {
-                var handle = GetConsoleWindow();
-
-                if (handle == IntPtr.Zero)
-                {
-                    AllocConsole();
-                }
-                else
-                {
-                    ShowWindow(handle, SwShow);
-                }
-            }
-
-            public static void HideConsoleWindow()
-            {
-                var handle = GetConsoleWindow();
-
-                ShowWindow(handle, SwHide);
-            }
-        }
-
-        public Dictionary<string, Dictionary<string, string>> info =
-        new Dictionary<string, Dictionary<string, string>> { };
-
-        public Dictionary<string, Dictionary<string, Dictionary<string, string>>> books =
-        new Dictionary<string, Dictionary<string, Dictionary<string, string>>> { };
-
-        public Dictionary<string, Dictionary<string, string>> currentledger =
-        new Dictionary<string, Dictionary<string, string>> { };
-
-        public Dictionary<string, Dictionary<string, string>> ledgerinfo =
-        new Dictionary<string, Dictionary<string, string>> { };
-
-        public Dictionary<string, Dictionary<string, Dictionary<string, string>>> ledgers =
-        new Dictionary<string, Dictionary<string, Dictionary<string, string>>> { };
-        /*
-        public Dictionary<string, Dictionary<string, Dictionary<string, string>>> currentledger =
-        new Dictionary<string, Dictionary<string, Dictionary<string, string>>> { };
-        */
-        public class DataItem
-        {
-            public string Title { get; set; }
-            public string Quantity { get; set; }
-            public string Size { get; set; }
-        }
-        public class Books 
-        {
-            public string Title { get; set; }
-            public string Number { get; set; }
-            public string Serial { get; set; }
-            public string Location { get; set; }
-        }
-        public class Ledger
-        {
-            public string Title { get; set; }
-            public string DateCreated { get; set; }
-            public string EntriesCount { get; set; }
-            public string Type { get; set; }
-        }
-        public class LedgerItems
-        {   
-            public string Type { get; set; }
-            public string LedgerTitle { get; set; }
-            public string Title { get; set; }
-            public string Quantity { get; set; }
-            public string Size { get; set; }
-            public string DateCreated { get; set; }
-        }
-
-        private string[] bookinfoColumnHeaders = { "Title", "Quantity", "Size" };
-        private string[] ledgerinfoColumnHeaders = { "Type", "Title", "DateCreated", "EntriesCount" };
-        private string[] dg2ColumnHeaders = { "Title", "Number", "Serial", "Location" };
-        private string[] ledgeritemsColumnHeaders = { "Type", "LedgerTitle", "Title", "Quantity", "Size", "DateCreated" };
         public MainWindow()
         {
             ConsoleAllocator.ShowConsoleWindow();
             InitializeComponent();
+            
+            //Initialize Stuff Here
+
+            LedgerBorder.Margin = new Thickness(6, 4, 0, 0);
+            MakeLedgerBorder.Margin = new Thickness(816, 4, 10, 232);
+            AddToLedgerBorder.Margin = new Thickness(816, 463, 0, 0);
+
+            //LedgerBorder.Visibility = Visibility.Hidden;
+
 
             // Your programmatically created DataGrid is attached to MainGrid here
 
@@ -212,7 +132,7 @@ namespace inventory
                         i++;
                     }
 
-                    dg.Items.Add(new Ledger { Title = key, Type = Inserts[0], DateCreated = Inserts[1], EntriesCount = Inserts[2] });
+                    dg.Items.Add(new Ledger { Title = key, DateCreated = Inserts[0], EntriesCount = Inserts[1] });
                 }
                 
             }
@@ -295,7 +215,7 @@ namespace inventory
                         //MessageBox.Show(intQuantity.ToString());
                         foreach(var key in ledgers[ledger.Title].Keys)
                         {
-                            dg2.Items.Add(new LedgerItems { Type = ledgerinfo[ledger.Title]["type"], LedgerTitle = ledger.Title, Title = key, Quantity = ledgers[ledger.Title][key]["quantity"], Size = ledgers[ledger.Title][key]["size"], DateCreated = ledgers[ledger.Title][key]["datecreated"] });
+                            dg2.Items.Add(new LedgerItems { Type = intQuantity > 0 ? "Inbound" : "Outbound", LedgerTitle = ledger.Title, Title = key, Quantity = ledgers[ledger.Title][key]["quantity"], Size = ledgers[ledger.Title][key]["size"], DateCreated = ledgers[ledger.Title][key]["datecreated"] });
                         }
                         //dg2.Items.Add(new LedgerItems { LedgerTitle = ledger.Title, Title = ledgers[ledger.Title][] });
                     }
@@ -341,10 +261,9 @@ namespace inventory
             }
         }
 
-        private void newLedger(string Type, string Title, string DateCreated, string EntriesCount)
+        private void newLedger(string Title, string DateCreated, string EntriesCount)
         {
                 ledgerinfo.Add(Title, new Dictionary<string, string>());
-                ledgerinfo[Title].Add("type", Type);
                 ledgerinfo[Title].Add("datecreated", DateCreated);
                 ledgerinfo[Title].Add("entriescount", EntriesCount);
 
@@ -441,10 +360,12 @@ namespace inventory
             }
             if (!ledgerinfo.ContainsKey(Title))
             {
-                newLedger((bool)InboundRadio.IsChecked ? "Inbound" : "Outbound", Title, datecreated, (currentledger.Count).ToString());
-                if ((bool)InboundRadio.IsChecked)
+                newLedger( Title, datecreated, (currentledger.Count).ToString());
+
+                foreach (string key in currentledger.Keys)
                 {
-                    foreach (string key in currentledger.Keys)
+                    int ledgerquantity = int.Parse(currentledger[key]["quantity"]);
+                    if(ledgerquantity > 0)
                     {
                         int i = 0;
                         string[] Inserts = { "", "" };
@@ -458,19 +379,14 @@ namespace inventory
                         }
                         newBook(key, Inserts[0], Inserts[1]);
                     }
-                    updatedg1();
-                }
-                else if ((bool)OutboundRadio.IsChecked)
-                {
-                    foreach (string key in currentledger.Keys)
+                    else
                     {
                         if (info.ContainsKey(key))
                         {
                             int infoquantity = int.Parse(info[key]["quantity"]);
-                            int ledgerquantity = int.Parse(currentledger[key]["quantity"]);
-                            if (infoquantity >= ledgerquantity)
+                            if (infoquantity >= Math.Abs(ledgerquantity))
                             {
-                                info[key]["quantity"] = (infoquantity - ledgerquantity).ToString();
+                                info[key]["quantity"] = (infoquantity + ledgerquantity).ToString();
                                 updatedg1();
                             }
                             else
@@ -479,12 +395,16 @@ namespace inventory
                             }
                         }
                         else
-                        {
-                            MessageBox.Show("Key not Found!");
+                        {   
+                            MessageBox.Show("Key not Found for Outbound: " + key);
+                            ledgerinfo.Remove(Title);
+                            ledgers.Remove(Title);
+                            break;
                         }
                     }
                 }
-                
+                updatedg1();
+  
             }
             else
             {
@@ -539,5 +459,96 @@ namespace inventory
             //MessageBox.Show("Books Clicked!");
             updatedg1();
         }
+
+        internal static class ConsoleAllocator
+        {
+            [DllImport(@"kernel32.dll", SetLastError = true)]
+            static extern bool AllocConsole();
+
+            [DllImport(@"kernel32.dll")]
+            static extern IntPtr GetConsoleWindow();
+
+            [DllImport(@"user32.dll")]
+            static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
+
+            const int SwHide = 0;
+            const int SwShow = 5;
+
+
+            public static void ShowConsoleWindow()
+            {
+                var handle = GetConsoleWindow();
+
+                if (handle == IntPtr.Zero)
+                {
+                    AllocConsole();
+                }
+                else
+                {
+                    ShowWindow(handle, SwShow);
+                }
+            }
+
+            public static void HideConsoleWindow()
+            {
+                var handle = GetConsoleWindow();
+
+                ShowWindow(handle, SwHide);
+            }
+        }
+
+        public Dictionary<string, Dictionary<string, string>> info =
+        new Dictionary<string, Dictionary<string, string>> { };
+
+        public Dictionary<string, Dictionary<string, Dictionary<string, string>>> books =
+        new Dictionary<string, Dictionary<string, Dictionary<string, string>>> { };
+
+        public Dictionary<string, Dictionary<string, string>> currentledger =
+        new Dictionary<string, Dictionary<string, string>> { };
+
+        public Dictionary<string, Dictionary<string, string>> ledgerinfo =
+        new Dictionary<string, Dictionary<string, string>> { };
+
+        public Dictionary<string, Dictionary<string, Dictionary<string, string>>> ledgers =
+        new Dictionary<string, Dictionary<string, Dictionary<string, string>>> { };
+        /*
+        public Dictionary<string, Dictionary<string, Dictionary<string, string>>> currentledger =
+        new Dictionary<string, Dictionary<string, Dictionary<string, string>>> { };
+        */
+        public class DataItem
+        {
+            public string Title { get; set; }
+            public string Quantity { get; set; }
+            public string Size { get; set; }
+        }
+        public class Books
+        {
+            public string Title { get; set; }
+            public string Number { get; set; }
+            public string Serial { get; set; }
+            public string Location { get; set; }
+        }
+        public class Ledger
+        {
+            public string Title { get; set; }
+            public string DateCreated { get; set; }
+            public string EntriesCount { get; set; }
+        }
+        public class LedgerItems
+        {
+            public string Type { get; set; }
+            public string LedgerTitle { get; set; }
+            public string Title { get; set; }
+            public string FormerQuantity { get; set; }
+            public string Quantity { get; set; }
+            public string LatterQuantity { get; set; }
+            public string Size { get; set; }
+            public string DateCreated { get; set; }
+        }
+
+        private string[] bookinfoColumnHeaders = { "Title", "Quantity", "Size" };
+        private string[] ledgerinfoColumnHeaders = { "Title", "DateCreated", "EntriesCount" };
+        private string[] dg2ColumnHeaders = { "Title", "Number", "Serial", "Location" };
+        private string[] ledgeritemsColumnHeaders = { "Type", "LedgerTitle", "Title", "FormerQuantity", "Quantity", "LatterQuantity", "Size", "DateCreated" };
     }
 }
