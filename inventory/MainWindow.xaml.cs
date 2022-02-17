@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
+using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -63,22 +64,56 @@ namespace inventory
                 column.Binding = new Binding(bookinfoColumnHeaders[i]);
                 ledger.Columns.Add(column);
             }
-
             newBook("Harry Potter", "5", "10, 10, 10");
             newBook("Harry Potter 2", "12", "10, 10, 10");
             newBook("Harry Potter 3", "6", "10, 10, 10");
-            for (int i = 4; i < 0; i++)
+            for (int i = 4; i < 20; i++)
             {
                 newBook("Harry Potter" + i, "6", "10, 10, 10");
             }
 
-
+            //Console.WriteLine(info.Any(dictionary => info.Value.Contains("Code")));
+            
+            
             // create four columns here with same names as the DataItem's properties
             updatedg1();
+
+            search("Harry Potter1");
         }
 
-        private void updatedg1()
+        private void search(string tobesearched)
         {
+            dg.Items.Clear();
+            var result = info.Where(entry => entry.Key.Contains(tobesearched)).Select(item => item.Key);
+            //dg.ScrollIntoView(dg.Items[1], dg.Columns[1]);
+            if ((bool)radiobutton_Books.IsChecked)
+            {
+                foreach (var key in result)
+                {
+                    Console.WriteLine(key);
+                    int i = 0;
+                    string[] Inserts = { "", "" };
+                    foreach (string innerKey in info[key].Keys)
+                    {
+                        System.Console.WriteLine("{0}\t{1}\t{2}", key, innerKey, info[key][innerKey]);
+                        //dict[key][innerKey];
+                        Inserts[i] = info[key][innerKey];
+                        System.Console.WriteLine("{0}", i);
+                        i++;
+                    }
+                    dg.Items.Add(new DataItem { Title = key, Quantity = Inserts[0], Size = Inserts[1] });
+                }
+            }
+            
+        }
+        private void textChangedEventHandler(object sender, TextChangedEventArgs args)
+        {
+            search(searchbox.Text);
+            // Omitted Code: Insert code that does something whenever
+            // the text changes...
+        } // end textChangedEventHandler
+        private void updatedg1()
+        {   
             dg.Columns.Clear();
             if ((bool)radiobutton_Books.IsChecked)
             {
@@ -134,7 +169,6 @@ namespace inventory
 
                     dg.Items.Add(new Ledger { Title = key, DateCreated = Inserts[0], EntriesCount = Inserts[1] });
                 }
-                
             }
         }
 
@@ -173,7 +207,7 @@ namespace inventory
                     foreach (var obj in dg.SelectedItems)
                     {
                         dataitem = obj as DataItem;
-
+                        
                         int intQuantity = int.Parse(dataitem.Quantity);
                         for (int i = 0; i < intQuantity; i++)
                         {
@@ -187,6 +221,7 @@ namespace inventory
                 {
 
                 }
+  
                 System.Console.WriteLine(str);
             }
             else if ((bool)radiobutton_Ledgers.IsChecked)
@@ -268,13 +303,21 @@ namespace inventory
                 ledgerinfo[Title].Add("entriescount", EntriesCount);
 
                 ledgers.Add(Title, new Dictionary<string, Dictionary<string, string>>());
-                foreach (string key in currentledger.Keys)
+            Console.WriteLine("Created new ledger");
+            Console.WriteLine(ledgers[Title]);
+            foreach (string key in currentledger.Keys)
                 {
-                    ledgers[Title].Add(key, new Dictionary<string, string>());
+                
+                ledgers[Title].Add(key, new Dictionary<string, string>());
+                    
                     ledgers[Title][key].Add("quantity", currentledger[key]["quantity"]);
+                    Console.WriteLine(ledgers[Title][key]["quantity"]);
                     ledgers[Title][key].Add("size", currentledger[key]["size"]);
-                    ledgers[Title][key].Add("datecreated", DateCreated);
+                    Console.WriteLine(ledgers[Title][key]["size"]);
+
+               ledgers[Title][key].Add("datecreated", DateCreated);
                 }
+
         }
 
         private int somebooknum = 100;
@@ -403,7 +446,7 @@ namespace inventory
                         }
                     }
                 }
-                updatedg1();
+                
   
             }
             else
@@ -411,6 +454,7 @@ namespace inventory
                 MessageBox.Show("Ledger Title Already Found!");
             }
 
+            updatedg1();
             tbox_ledgertitle.Text = "";
 
 
@@ -494,6 +538,167 @@ namespace inventory
                 var handle = GetConsoleWindow();
 
                 ShowWindow(handle, SwHide);
+            }
+        }
+
+        static void Write1(Dictionary<string, Dictionary<string, string>> dictionary, string file)
+        {
+            using (FileStream fs = File.OpenWrite(file))
+            using (BinaryWriter writer = new BinaryWriter(fs))
+            {
+                // Put count.
+                writer.Write(dictionary.Count);
+                //Console.WriteLine(dictionary.Count);
+                // Write pairs.
+                foreach (var pair in dictionary)
+                {
+                    writer.Write(pair.Key);
+                    writer.Write(dictionary[pair.Key].Count);
+                    foreach (var pair2 in pair.Value)
+                    {
+                        writer.Write(pair2.Key);
+                        writer.Write(pair2.Value);
+                        //Console.WriteLine(pair2);
+                    }
+                }
+            }
+        }
+        static void Write2(Dictionary<string, Dictionary<string, Dictionary<string, string>>> dictionary, string file)
+        {
+            using (FileStream fs = File.OpenWrite(file))
+            using (BinaryWriter writer = new BinaryWriter(fs))
+            {
+                // Put count.
+                writer.Write(dictionary.Count);
+                //Console.WriteLine(dictionary.Count);
+                // Write pairs.
+                foreach (var pair in dictionary)
+                {
+                    writer.Write(pair.Key);
+                    writer.Write(dictionary[pair.Key].Count);
+                    //Console.WriteLine(pair.Key);
+                    //Console.WriteLine(dictionary[pair.Key].Count);
+                    foreach (var pair2 in pair.Value)
+                    {
+                        writer.Write(pair2.Key);
+                        writer.Write(dictionary[pair2.Key].Count);
+                        //Console.WriteLine(pair2.Key);
+                        //Console.WriteLine(dictionary[pair.Key].Count);
+                        foreach (var pair3 in pair2.Value)
+                        {
+                            writer.Write(pair3.Key);
+                            writer.Write(pair3.Value);
+                            //Console.WriteLine(pair3.Key);
+                            //Console.WriteLine(pair3.Value);
+                        }
+                    }
+                }
+            }
+        }
+        static Dictionary<string, Dictionary<string, Dictionary<string, string>>> Read2(string file)
+        {
+            var result = new Dictionary<string, Dictionary<string, Dictionary<string, string>>>();
+            using (FileStream fs = File.OpenRead(file))
+            using (BinaryReader reader = new BinaryReader(fs))
+            {
+                // Get count.
+                int count = reader.ReadInt32();
+                //Console.WriteLine(count);
+                // Read in all pairs.
+                for (int i = 0; i < count; i++)
+                {
+                    string key = reader.ReadString();
+                    result[key] = new Dictionary<string, Dictionary<string, string>>();
+                    Console.WriteLine(key);
+                    int count2 = reader.ReadInt32();
+                    Console.WriteLine(count2);
+                    for (int j = 0; j < count2; j++)
+                    {
+                        string key2 = reader.ReadString();
+                        result[key][key2] = new Dictionary<string, string>();
+                        Console.WriteLine(key2);
+                        int count3 = reader.ReadInt32();
+                        for (int k = 0; k < count3; k++)
+                        {
+                            string a = reader.ReadString();
+                            string b = reader.ReadString();
+                            result[key][key2][a] = b;
+                        }
+                    }
+                }
+            }
+            return result;
+        }
+
+        static Dictionary<string, Dictionary<string, string>> Read1(string file)
+        {
+            var result = new Dictionary<string, Dictionary<string, string>>();
+            using (FileStream fs = File.OpenRead(file))
+            using (BinaryReader reader = new BinaryReader(fs))
+            {
+                // Get count.
+                int count = reader.ReadInt32();
+                //Console.WriteLine(count);
+                // Read in all pairs.
+                for (int i = 0; i < count; i++)
+                {
+                    string key = reader.ReadString();
+                    result[key] = new Dictionary<string, string>();
+                    //Console.WriteLine(key);
+                    int count2 = reader.ReadInt32();
+                    //Console.WriteLine(count2);
+                    for (int j = 0; j < count2; j++)
+                    {
+
+                        string a = reader.ReadString();
+                        string b = reader.ReadString();
+                        result[key][a] = b;
+                        //Console.WriteLine(a);
+                        //Console.WriteLine(b);
+                    }
+                }
+            }
+            return result;
+        }
+
+        private void InitializeDataBin()
+        {
+            try
+            {
+                info = Read1("C:\\Users\\NakaMura\\Desktop\\data\\info.bin");
+                Console.WriteLine("Initialized info " + info.Count);
+                ledgerinfo = Read1("C:\\Users\\NakaMura\\Desktop\\data\\ledgerinfo.bin");
+                Console.WriteLine("Initialized ledgerinfo" + ledgerinfo.Count);
+                books = Read2("C:\\Users\\NakaMura\\Desktop\\data\\books.bin");
+                Console.WriteLine("Initialized books " + books.Count);
+                ledgers = Read2("C:\\Users\\NakaMura\\Desktop\\data\\ledgers.bin");
+                Console.WriteLine("Initialized ledgers " + ledgers.Count);
+            }
+            catch
+            {
+
+            }
+            
+        }
+        private void UpdateDataBin()
+        {
+            try
+            {
+                Write1(info, "C:\\Users\\NakaMura\\Desktop\\data\\info.bin");
+                info = Read1("C:\\Users\\NakaMura\\Desktop\\data\\info.bin");
+                Write2(books, "C:\\Users\\NakaMura\\Desktop\\data\\books.bin");
+                books = Read2("C:\\Users\\NakaMura\\Desktop\\data\\books.bin");
+
+                Write1(ledgerinfo, "C:\\Users\\NakaMura\\Desktop\\data\\ledgerinfo.bin");
+                ledgerinfo = Read1("C:\\Users\\NakaMura\\Desktop\\data\\ledgerinfo.bin");
+
+                               
+                Write2(ledgers, "C:\\Users\\NakaMura\\Desktop\\data\\ledgers.bin");
+                ledgers = Read2("C:\\Users\\NakaMura\\Desktop\\data\\ledgers.bin");
+            }
+            catch
+            {
+                Console.WriteLine("Error!");
             }
         }
 
