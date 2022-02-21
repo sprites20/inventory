@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -31,8 +32,9 @@ namespace inventory
         {
             ConsoleAllocator.ShowConsoleWindow();
             InitializeComponent();
-            
+
             //Initialize Stuff Here
+            LoadCSV();
 
             LedgerBorder.Margin = new Thickness(6, 4, 0, 0);
             MakeLedgerBorder.Margin = new Thickness(816, 4, 10, 232);
@@ -64,6 +66,7 @@ namespace inventory
                 column.Binding = new Binding(bookinfoColumnHeaders[i]);
                 ledger.Columns.Add(column);
             }
+            /*
             newBook("Harry Potter", "5", "10, 10, 10");
             newBook("Harry Potter 2", "12", "10, 10, 10");
             newBook("Harry Potter 3", "6", "10, 10, 10");
@@ -71,6 +74,7 @@ namespace inventory
             {
                 newBook("Harry Potter" + i, "6", "10, 10, 10");
             }
+            */
 
             //Console.WriteLine(info.Any(dictionary => info.Value.Contains("Code")));
             
@@ -78,16 +82,17 @@ namespace inventory
             // create four columns here with same names as the DataItem's properties
             updatedg1();
 
-            search("Harry Potter1");
+            //search("Harry Potter1");
         }
 
         private void search(string tobesearched)
         {
             dg.Items.Clear();
-            var result = info.Where(entry => entry.Key.Contains(tobesearched)).Select(item => item.Key);
+           
             //dg.ScrollIntoView(dg.Items[1], dg.Columns[1]);
             if ((bool)radiobutton_Books.IsChecked)
             {
+                var result = info.Where(entry => entry.Key.Contains(tobesearched)).Select(item => item.Key);
                 foreach (var key in result)
                 {
                     Console.WriteLine(key);
@@ -104,7 +109,26 @@ namespace inventory
                     dg.Items.Add(new DataItem { Title = key, Quantity = Inserts[0], Size = Inserts[1] });
                 }
             }
-            
+            else if ((bool)radiobutton_Ledgers.IsChecked)
+            {
+                var result = ledgerinfo.Where(entry => entry.Key.Contains(tobesearched)).Select(item => item.Key);
+                foreach (var key in result)
+                {
+                    Console.WriteLine(key);
+                    int i = 0;
+                    string[] Inserts = { "", "" };
+                    foreach (string innerKey in ledgerinfo[key].Keys)
+                    {
+                        System.Console.WriteLine("{0}\t{1}\t{2}", key, innerKey, ledgerinfo[key][innerKey]);
+                        //dict[key][innerKey];
+                        Inserts[i] = ledgerinfo[key][innerKey];
+                        System.Console.WriteLine("{0}", i);
+                        i++;
+                    }
+                    dg.Items.Add(new Ledger { Title = key, DateCreated = Inserts[0], EntriesCount = Inserts[1] });
+                    //dg2.Items.Add(new LedgerItems { Type = intQuantity > 0 ? "Inbound" : "Outbound", LedgerTitle = ledger.Title, Title = key, Quantity = ledgers[ledger.Title][key]["quantity"], Size = ledgers[ledger.Title][key]["size"], DateCreated = ledgers[ledger.Title][key]["datecreated"] });
+                }
+            }
         }
         private void textChangedEventHandler(object sender, TextChangedEventArgs args)
         {
@@ -226,7 +250,7 @@ namespace inventory
             }
             else if ((bool)radiobutton_Ledgers.IsChecked)
             {
-                string str = "";
+                //string str = "";
                 dg2.Items.Clear();
                 dg2.Columns.Clear();
                 int len = ledgeritemsColumnHeaders.Length;
@@ -368,24 +392,63 @@ namespace inventory
             {
                 tbox_quantity.Text = "0";
             }
-            if (tbox_title.Text == "")
+            bool pass = true;
+            //Check if Quantity is int
+            try
             {
-                MessageBox.Show("Please Input at least a Title!");
+                int.Parse(tbox_quantity.Text);
             }
-            else
+            catch
             {
-                if (!currentledger.ContainsKey(tbox_title.Text))
+                pass = false;
+                MessageBox.Show("Invalid Quantity. Please input an integer.");
+            }
+            //Check if Size if Valid
+            try
+            {
+                char[] spearator = { ',' };
+                // using the method
+                string size = ReplaceWhitespace(tbox_size.Text, "");
+                string[] strlist = size.Split(spearator);
+
+                if(strlist.Length != 3)
                 {
-                    currentledger.Add(tbox_title.Text, new Dictionary<string, string>());
-                    currentledger[tbox_title.Text].Add("quantity", tbox_quantity.Text);
-                    currentledger[tbox_title.Text].Add("size", tbox_size.Text);
-                }
-                else
-                {
-                    currentledger[tbox_title.Text]["quantity"] = (int.Parse(currentledger[tbox_title.Text]["quantity"]) + int.Parse(tbox_quantity.Text)).ToString();
+                    int.Parse("a");
                 }
 
-                updateledger();
+                foreach(string str in strlist)
+                {
+                    float.Parse(str);
+                }
+            }
+            catch
+            {
+                pass = false;
+                MessageBox.Show("Invalid Size");
+            }
+
+            if (pass)
+            {
+                if (tbox_title.Text == "")
+                {
+                    MessageBox.Show("Please Input at least a Title!");
+                }
+
+                else
+                {
+                    if (!currentledger.ContainsKey(tbox_title.Text))
+                    {
+                        currentledger.Add(tbox_title.Text, new Dictionary<string, string>());
+                        currentledger[tbox_title.Text].Add("quantity", tbox_quantity.Text);
+                        currentledger[tbox_title.Text].Add("size", tbox_size.Text);
+                    }
+                    else
+                    {
+                        currentledger[tbox_title.Text]["quantity"] = (int.Parse(currentledger[tbox_title.Text]["quantity"]) + int.Parse(tbox_quantity.Text)).ToString();
+                    }
+
+                    updateledger();
+                }
             }
         }
         private void ConfirmLedger_Click(object sender, RoutedEventArgs e)
@@ -478,6 +541,187 @@ namespace inventory
             }
         }
 
+        private static readonly Regex sWhitespace = new Regex(@"\s+");
+        public static string ReplaceWhitespace(string input, string replacement)
+        {
+            return sWhitespace.Replace(input, replacement);
+        }
+
+        private void Load_info()
+        {
+            string path = "";
+            path = System.AppContext.BaseDirectory;
+            Console.WriteLine(path);
+
+            string fullPath = path + @"\Files";
+            fullPath = path + @"\Files\info.csv";
+            if (File.Exists(fullPath))                                  //Print contents to backup called info_backup.csv
+            {
+                string readText = File.ReadAllText(fullPath);
+                // Taking a string
+                string str = readText;
+
+                int n = 1;
+                string[] lines = str
+                    .Split(Environment.NewLine.ToCharArray())
+                    .Skip(n)
+                    .ToArray();
+
+                str = string.Join(Environment.NewLine, lines);
+
+                char[] spearator = {','};
+
+                // using the method
+                string[] strlist = str.Split(spearator);
+
+                int count = 0;
+                string[] inputs = new string[5];
+                foreach (String s in strlist)
+                {
+                    if (count == 5)
+                    {   
+                        for(int i = 0; i < inputs.Length; i++)
+                        {
+                            Console.WriteLine(i.ToString() + " " + inputs[i]);
+                        } 
+                        string key = inputs[0];
+                        newBook(key, inputs[1], inputs[2] + "," + ReplaceWhitespace(inputs[3], "") + "," + ReplaceWhitespace(inputs[4], ""));
+                        count = 0;
+                        Array.Clear(inputs, 0, inputs.Length);
+                    }
+                        string somestr = s.Replace(Environment.NewLine, "");
+                        inputs[count] = somestr;
+                        //Console.WriteLine(count.ToString() + " " + somestr);
+                    
+                    count++;
+                }
+                //Console.WriteLine(readText);
+            }
+        }
+
+        private void Load_ledgerinfo()
+        {
+            string path = "";
+            path = System.AppContext.BaseDirectory;
+            Console.WriteLine(path);
+
+            string fullPath = path + @"\Files";
+            fullPath = path + @"\Files\ledgerinfo.csv";
+            if (File.Exists(fullPath))                                  //Print contents to backup called info_backup.csv
+            {
+                string readText = File.ReadAllText(fullPath);
+                // Taking a string
+                string str = readText;
+
+                int n = 1;
+                string[] lines = str
+                    .Split(Environment.NewLine.ToCharArray())
+                    .Skip(n)
+                    .ToArray();
+
+                str = string.Join(Environment.NewLine, lines);
+
+                char[] spearator = { ',' };
+
+                // using the method
+                string[] strlist = str.Split(spearator);
+
+                int count = 0;
+                string[] inputs = new string[5];
+                foreach (String s in strlist)
+                {
+                    if (count == 3)
+                    {
+                        for (int i = 0; i < inputs.Length; i++)
+                        {
+                            Console.WriteLine(i.ToString() + " " + inputs[i]);
+                        }
+                        string key = inputs[0];
+                        newLedger(key, inputs[1], inputs[2]);
+                        count = 0;
+                        Array.Clear(inputs, 0, inputs.Length);
+                    }
+                    string somestr = s.Replace(Environment.NewLine, "");
+                    inputs[count] = somestr;
+                    //Console.WriteLine(count.ToString() + " " + somestr);
+
+                    count++;
+                }
+                //Console.WriteLine(readText);
+            }
+        }
+        private void saveInfo()
+        {
+            string path = "";
+            path = System.AppContext.BaseDirectory;
+            Console.WriteLine(path);
+
+            string fullPath = path + @"\Files";
+            if (!Directory.Exists(fullPath))                            //Checks if File exists
+            {
+                Directory.CreateDirectory(fullPath);
+            }
+            fullPath = path + @"\Files\info.csv";
+            string backupPath = path + @"\Files\info_backup.csv";
+            if (File.Exists(fullPath))                                  //Print contents to backup called info_backup.csv
+            {
+                //fullPath = backupPath;
+            }
+            // Write file using StreamWriter  
+            using (StreamWriter writer = new StreamWriter(backupPath))
+            {
+                writer.WriteLine(String.Format("{0},{1},{2},", "Title", "Quantity", "Size"));
+                foreach (string key in info.Keys)
+                {
+                    writer.WriteLine(String.Format("{0},{1},{2},", key, info[key]["quantity"], info[key]["size"]));
+                }
+            }
+            File.Delete(path + @"\Files\info.csv");
+            File.Copy(backupPath, path + @"\Files\info.csv");
+            File.Delete(backupPath);
+            // Read a file  
+            string readText = File.ReadAllText(fullPath);
+            Console.WriteLine(readText);
+        }
+        private void saveLedgerInfo()
+        {
+            string path = "";
+            path = System.AppContext.BaseDirectory;
+            Console.WriteLine(path);
+
+            string fullPath = path + @"\Files";
+            if (!Directory.Exists(fullPath))                            //Checks if File exists
+            {
+                Directory.CreateDirectory(fullPath);
+            }
+            fullPath = path + @"\Files\ledgerinfo.csv";
+            string backupPath = path + @"\Files\ledgerinfo_backup.csv";
+            if (File.Exists(fullPath))                                  //Print contents to backup called info_backup.csv
+            {
+                //fullPath = backupPath;
+            }
+            // Write file using StreamWriter  
+            using (StreamWriter writer = new StreamWriter(backupPath))
+            {
+                writer.WriteLine(String.Format("{0},{1},{2},", "Title", "DateCreated", "EntriesCount"));
+                foreach (string key in ledgerinfo.Keys)
+                {
+                    writer.WriteLine(String.Format("{0},{1},{2},", key, ledgerinfo[key]["datecreated"], ledgerinfo[key]["entriescount"]));
+                }
+            }
+            File.Delete(path + @"\Files\ledgerinfo.csv");
+            File.Copy(backupPath, path + @"\Files\ledgerinfo.csv");
+            File.Delete(backupPath);
+            // Read a file  
+            string readText = File.ReadAllText(fullPath);
+            Console.WriteLine(readText);
+        }
+        private void SaveAsCSV_Click(object sender, RoutedEventArgs e)
+        {
+            saveInfo();
+            saveLedgerInfo();
+        }
+        
         private void RemoveSelected_Click(object sender, RoutedEventArgs e)
         {
             foreach (string key in selectedinledger)
@@ -541,6 +785,11 @@ namespace inventory
             }
         }
 
+        private void LoadCSV()
+        {
+            Load_info();
+            Load_ledgerinfo();
+        }
         static void Write1(Dictionary<string, Dictionary<string, string>> dictionary, string file)
         {
             using (FileStream fs = File.OpenWrite(file))

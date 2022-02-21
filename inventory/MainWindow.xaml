@@ -56,10 +56,11 @@
                             <RadioButton x:Name="radiobutton_Ledgers" Content="Ledgers" Height="23" Width="96" Click="radiobutton_Ledgers_Click"/>
                         </StackPanel>
                     </GroupBox>
+                    <Button Content="Save as CSV" HorizontalAlignment="Left" Margin="621,242,0,0" VerticalAlignment="Top" Height="30" Width="86" Click="SaveAsCSV_Click"/>
                 </Grid>
             </Border>
         </Grid>
-        
+
 
 
 
