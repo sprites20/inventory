@@ -320,7 +320,7 @@ namespace inventory
             }
         }
 
-        private void newLedger(string Title, string DateCreated, string EntriesCount)
+        private void newLedgerInfo(string Title, string DateCreated, string EntriesCount)
         {
                 ledgerinfo.Add(Title, new Dictionary<string, string>());
                 ledgerinfo[Title].Add("datecreated", DateCreated);
@@ -333,10 +333,11 @@ namespace inventory
                 {
                 
                 ledgers[Title].Add(key, new Dictionary<string, string>());
-                    
-                    ledgers[Title][key].Add("quantity", currentledger[key]["quantity"]);
+                ledgers[Title][key].Add("formerquantity", "");
+                ledgers[Title][key].Add("quantity", currentledger[key]["quantity"]);
                     Console.WriteLine(ledgers[Title][key]["quantity"]);
-                    ledgers[Title][key].Add("size", currentledger[key]["size"]);
+                ledgers[Title][key].Add("latterquantity", "");
+                ledgers[Title][key].Add("size", currentledger[key]["size"]);
                     Console.WriteLine(ledgers[Title][key]["size"]);
 
                ledgers[Title][key].Add("datecreated", DateCreated);
@@ -453,7 +454,7 @@ namespace inventory
         }
         private void ConfirmLedger_Click(object sender, RoutedEventArgs e)
         {
-            string datecreated = System.DateTime.Now.ToString("dd-MM-yyyy HH:mm:ss:ff");
+            string datecreated = System.DateTime.Now.ToString("dd-MM-yyyy HHmmssff");
             string Title = tbox_ledgertitle.Text;
             if (currentledger.Count == 0)
             {
@@ -466,7 +467,7 @@ namespace inventory
             }
             if (!ledgerinfo.ContainsKey(Title))
             {
-                newLedger( Title, datecreated, (currentledger.Count).ToString());
+                newLedgerInfo( Title, datecreated, (currentledger.Count).ToString());
 
                 foreach (string key in currentledger.Keys)
                 {
@@ -598,7 +599,86 @@ namespace inventory
                 //Console.WriteLine(readText);
             }
         }
+        private void newLedger(string Type, string LedgerTitle, string Title, string FormerQuantity, string Quantity, string LatterQuantity, string Size, string DateCreated)
+        {
+            Console.WriteLine(LedgerTitle);
+            Console.WriteLine(Title);
+            if (!ledgers.ContainsKey(LedgerTitle))
+            {
+                ledgers.Add(LedgerTitle, new Dictionary<string, Dictionary<string, string>>());
+            }
+            ledgers[LedgerTitle].Add(Title, new Dictionary<string, string>());
+            ledgers[LedgerTitle][Title].Add("type", Type);
+            ledgers[LedgerTitle][Title].Add("formerquantity", FormerQuantity);
+            ledgers[LedgerTitle][Title].Add("quantity", Quantity);
+            ledgers[LedgerTitle][Title].Add("latterquantity", LatterQuantity);
+            ledgers[LedgerTitle][Title].Add("size", Size);
+            ledgers[LedgerTitle][Title].Add("datecreated", DateCreated);
+        }
+        private void Load_ledgers()
+        {
+            string path = "";
+            path = System.AppContext.BaseDirectory;
+            Console.WriteLine(path);
 
+            foreach(string ledgerkey in ledgerinfo.Keys)
+            {
+                string fullPath = path + @"\Files\Ledgers\";
+                fullPath = path + @"\Files\Ledgers\" + ledgerkey + ".csv";
+                if (File.Exists(fullPath))                                  //Print contents to backup called info_backup.csv
+                {
+                    string readText = File.ReadAllText(fullPath);
+                    // Taking a string
+                    string str = readText;
+                    Console.WriteLine(str);
+                    int n = 1;
+                    string[] lines = str
+                        .Split(Environment.NewLine.ToCharArray())
+                        .Skip(n)
+                        .ToArray();
+
+                    str = string.Join(Environment.NewLine, lines);
+
+                    char[] spearator = { ',' };
+
+                    // using the method
+                    string[] strlist = str.Split(spearator);
+
+                    int count = 0;
+                    string[] inputs = new string[10];
+                    
+                    foreach(string s in strlist)
+                    {
+                        if (count == 10)
+                        {
+                            for (int i = 0; i < inputs.Length; i++)
+                            {
+                                Console.WriteLine(i.ToString() + " " + inputs[i]);
+                            }
+                            //newBook(key, inputs[1], inputs[2] + "," + ReplaceWhitespace(inputs[3], "") + "," + ReplaceWhitespace(inputs[4], ""));
+                            newLedger(
+                                inputs[0], 
+                                inputs[1], 
+                                inputs[2], 
+                                inputs[3], 
+                                inputs[4], 
+                                inputs[5], 
+                                inputs[6] + "," + inputs[7] + "," + inputs[8], 
+                                inputs[9]
+                            );
+                            count = 0;
+                            Array.Clear(inputs, 0, inputs.Length);
+                        }
+                        string somestr = s.Replace(Environment.NewLine, "");
+                        inputs[count] = somestr;
+                        Console.WriteLine(count.ToString() + " " + somestr);
+
+                        count++;
+                    }
+                    //Console.WriteLine(readText);
+                }
+            }
+        }
         private void Load_ledgerinfo()
         {
             string path = "";
@@ -637,7 +717,7 @@ namespace inventory
                             Console.WriteLine(i.ToString() + " " + inputs[i]);
                         }
                         string key = inputs[0];
-                        newLedger(key, inputs[1], inputs[2]);
+                        newLedgerInfo(key, inputs[1], inputs[2]);
                         count = 0;
                         Array.Clear(inputs, 0, inputs.Length);
                     }
@@ -683,6 +763,52 @@ namespace inventory
             string readText = File.ReadAllText(fullPath);
             Console.WriteLine(readText);
         }
+        private void saveLedgers()
+        {
+            string path = "";
+            path = System.AppContext.BaseDirectory;
+            Console.WriteLine(path);
+
+            string fullPath = path + @"\Files\Ledgers";
+            if (!Directory.Exists(fullPath))                            //Checks if File exists
+            {
+                Directory.CreateDirectory(fullPath);
+            }
+            foreach(string ledgertitle in ledgers.Keys)
+            {
+                fullPath = path + @"\Files\Ledgers\" + ledgertitle + ".csv";
+                string backupPath = path + @"\Files\Ledgers\" + ledgertitle + "_backup.csv";
+                if (File.Exists(fullPath))                                  //Print contents to backup called info_backup.csv
+                {
+                    //fullPath = backupPath;
+                }
+                // Write file using StreamWriter  
+                using (StreamWriter writer = new StreamWriter(backupPath))
+                {
+                    writer.WriteLine(String.Format("{0},{1},{2},{3},{4},{5},{6},,,{7},", "Type", "LedgerTitle", "Title", "FormerQuantity", "Quantity", "LatterQuantity", "Size", "DateCreated"));
+                    foreach(string key in ledgers[ledgertitle].Keys)
+                    {
+                        //dg2.Items.Add(new LedgerItems { Type = intQuantity > 0 ? "Inbound" : "Outbound", LedgerTitle = ledger.Title, Title = key, Quantity = ledgers[ledger.Title][key]["quantity"], Size = ledgers[ledger.Title][key]["size"], DateCreated = ledgers[ledger.Title][key]["datecreated"] });
+                        writer.WriteLine(String.Format("{0},{1},{2},{3},{4},{5},{6},{7},", 
+                            int.Parse(ledgers[ledgertitle][key]["quantity"]) > 0 ? "Inbound" : "Outbound",
+                            ledgertitle,
+                            key,
+                            ledgers[ledgertitle][key]["formerquantity"], 
+                            ledgers[ledgertitle][key]["quantity"],
+                            ledgers[ledgertitle][key]["latterquantity"],
+                            ledgers[ledgertitle][key]["size"],
+                            ledgers[ledgertitle][key]["datecreated"]
+                            ));
+                    }
+                }
+                File.Delete(fullPath);
+                File.Copy(backupPath, fullPath);
+                File.Delete(backupPath);
+                // Read a file  
+                string readText = File.ReadAllText(fullPath);
+                Console.WriteLine(readText);
+            }
+        }
         private void saveLedgerInfo()
         {
             string path = "";
@@ -720,6 +846,7 @@ namespace inventory
         {
             saveInfo();
             saveLedgerInfo();
+            saveLedgers();
         }
         
         private void RemoveSelected_Click(object sender, RoutedEventArgs e)
@@ -789,6 +916,7 @@ namespace inventory
         {
             Load_info();
             Load_ledgerinfo();
+            Load_ledgers();
         }
         static void Write1(Dictionary<string, Dictionary<string, string>> dictionary, string file)
         {
