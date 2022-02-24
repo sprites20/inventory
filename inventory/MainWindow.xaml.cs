@@ -208,6 +208,13 @@ namespace inventory
             }
             TextBox TextBox1 = new TextBox();
         }
+        private Dictionary<string, Dictionary<string, bool>> dg2selecteditems = new Dictionary<string, Dictionary<string, bool>> { };
+        private void dg2_SelectedCellsChanged(object sender, SelectedCellsChangedEventArgs e)
+        {
+            
+        }
+
+        
         private void dg_SelectedCellsChanged(object sender, SelectedCellsChangedEventArgs e)
         {
             if ((bool)radiobutton_Books.IsChecked)
@@ -227,7 +234,7 @@ namespace inventory
                 if (dg.SelectedItems.Count > 0)
                 {
                     DataItem dataitem = new DataItem();
-                    Books books = new Books();
+                    Books book = new Books();
                     foreach (var obj in dg.SelectedItems)
                     {
                         dataitem = obj as DataItem;
@@ -235,7 +242,7 @@ namespace inventory
                         int intQuantity = int.Parse(dataitem.Quantity);
                         for (int i = 0; i < intQuantity; i++)
                         {
-                            dg2.Items.Add(new Books { Title = dataitem.Title, Number = i.ToString(), Serial = dataitem.Title + "_" + i.ToString(), Location = "10" });
+                            dg2.Items.Add(new Books { Title = dataitem.Title, Number = i.ToString(), Serial = dataitem.Title + "_" + i.ToString(), Location = "10", Defective = books[dataitem.Title][i.ToString()]["defective"] });
                         }
 
                         str += dataitem.Title + "\n";
@@ -274,7 +281,7 @@ namespace inventory
                         //MessageBox.Show(intQuantity.ToString());
                         foreach(var key in ledgers[ledger.Title].Keys)
                         {
-                            dg2.Items.Add(new LedgerItems { Type = intQuantity > 0 ? "Inbound" : "Outbound", LedgerTitle = ledger.Title, Title = key, Quantity = ledgers[ledger.Title][key]["quantity"], Size = ledgers[ledger.Title][key]["size"], DateCreated = ledgers[ledger.Title][key]["datecreated"] });
+                            dg2.Items.Add(new LedgerItems { Type = intQuantity > 0 ? "Inbound" : "Outbound", LedgerTitle = ledger.Title, Title = key, FormerQuantity = ledgers[ledger.Title][key]["formerquantity"], Quantity = ledgers[ledger.Title][key]["quantity"], LatterQuantity = ledgers[ledger.Title][key]["latterquantity"], Size = ledgers[ledger.Title][key]["size"], DateCreated = ledgers[ledger.Title][key]["datecreated"] });
                         }
                         //dg2.Items.Add(new LedgerItems { LedgerTitle = ledger.Title, Title = ledgers[ledger.Title][] });
                     }
@@ -285,8 +292,12 @@ namespace inventory
                 }
             }
         }
-            
 
+        public void ArrayPush<T>(ref T[] table, object value)
+        {
+            Array.Resize(ref table, table.Length + 1); // Resizing the array for the cloned length (+-) (+1)
+            table.SetValue(value, table.Length - 1); // Setting the value for the new element
+        }
         private void newBook(string Title, string Quantity, string Size)
         {
             if (!info.ContainsKey(Title))
@@ -295,7 +306,6 @@ namespace inventory
                 info[Title].Add("quantity", Quantity);
                 info[Title].Add("size", Size);
 
-
                 books.Add(Title, new Dictionary<string, Dictionary<string, string>>());
                 int intQuantity = int.Parse(Quantity);
                 for (int i = 0; i < intQuantity; i++)
@@ -303,20 +313,40 @@ namespace inventory
                     books[Title].Add(i.ToString(), new Dictionary<string, string>());
                     books[Title][i.ToString()].Add("serial", Title + "_" + i.ToString());
                     books[Title][i.ToString()].Add("location", "10");
+                    books[Title][i.ToString()].Add("defective", "False");
                 }
             }
             else
             {
+                int intQuantity = int.Parse(info[Title]["quantity"]);
                 info[Title]["quantity"] = (int.Parse(info[Title]["quantity"]) + int.Parse(Quantity)).ToString();
+
+                int[] nums = new int[] { };
+                foreach(string key in books[Title].Keys)
+                {
+                    ArrayPush(ref nums, int.Parse(key));
+                    Console.WriteLine("");
+                }
                 /*
                 int intQuantity = int.Parse(Quantity);
-                for (int i = 0; i < intQuantity; i++)
+                for (int i = intQuantity; i < intQuantity*2; i++)
                 {
                     books[Title].Add(i.ToString(), new Dictionary<string, string>());
                     books[Title][i.ToString()].Add("serial", Title + "_" + i.ToString());
                     books[Title][i.ToString()].Add("location", "10");
+                    books[Title][i.ToString()].Add("defective", "False");
                 }
                 */
+
+                int qty = int.Parse(info[Title]["quantity"]);
+                for (int i = intQuantity; i < qty; i++)
+                {
+                    books[Title].Add(i.ToString(), new Dictionary<string, string>());
+                    books[Title][i.ToString()].Add("serial", Title + "_" + i.ToString());
+                    books[Title][i.ToString()].Add("location", "10");
+                    books[Title][i.ToString()].Add("defective", "False");
+                }
+
             }
         }
 
@@ -331,18 +361,31 @@ namespace inventory
             Console.WriteLine(ledgers[Title]);
             foreach (string key in currentledger.Keys)
                 {
-                
                 ledgers[Title].Add(key, new Dictionary<string, string>());
-                ledgers[Title][key].Add("formerquantity", "");
-                ledgers[Title][key].Add("quantity", currentledger[key]["quantity"]);
-                    Console.WriteLine(ledgers[Title][key]["quantity"]);
-                ledgers[Title][key].Add("latterquantity", "");
-                ledgers[Title][key].Add("size", currentledger[key]["size"]);
-                    Console.WriteLine(ledgers[Title][key]["size"]);
-
-               ledgers[Title][key].Add("datecreated", DateCreated);
+                try
+                {
+                    ledgers[Title][key].Add("formerquantity", info[key]["quantity"]);
+                    Console.WriteLine(ledgers[Title][key]["formerquantity"]);
                 }
-
+                catch
+                {
+                    ledgers[Title][key].Add("formerquantity", "0");
+                }
+                
+                ledgers[Title][key].Add("quantity", currentledger[key]["quantity"]);
+                try
+                {
+                    ledgers[Title][key].Add("latterquantity", (int.Parse(info[key]["quantity"]) + int.Parse(currentledger[key]["quantity"])).ToString());
+                }
+                catch
+                {
+                    ledgers[Title][key].Add("latterquantity", currentledger[key]["quantity"]);
+                }
+                
+                Console.WriteLine(ledgers[Title][key]["latterquantity"]);
+                ledgers[Title][key].Add("size", currentledger[key]["size"]);
+                ledgers[Title][key].Add("datecreated", DateCreated);
+                }
         }
 
         private int somebooknum = 100;
@@ -499,6 +542,8 @@ namespace inventory
                             else
                             {
                                 MessageBox.Show("Not Enough Stock!");
+                                ledgerinfo.Remove(Title);   
+                                ledgers.Remove(Title);
                             }
                         }
                         else
@@ -601,8 +646,6 @@ namespace inventory
         }
         private void newLedger(string Type, string LedgerTitle, string Title, string FormerQuantity, string Quantity, string LatterQuantity, string Size, string DateCreated)
         {
-            Console.WriteLine(LedgerTitle);
-            Console.WriteLine(Title);
             if (!ledgers.ContainsKey(LedgerTitle))
             {
                 ledgers.Add(LedgerTitle, new Dictionary<string, Dictionary<string, string>>());
@@ -646,10 +689,10 @@ namespace inventory
 
                     int count = 0;
                     string[] inputs = new string[10];
-                    
-                    foreach(string s in strlist)
+                    int maxcount = ledgeritemsColumnHeaders.Length + 2;
+                    foreach (string s in strlist)
                     {
-                        if (count == 10)
+                        if (count == maxcount)
                         {
                             for (int i = 0; i < inputs.Length; i++)
                             {
@@ -708,9 +751,11 @@ namespace inventory
 
                 int count = 0;
                 string[] inputs = new string[5];
+
+                int maxcount = ledgerinfoColumnHeaders.Length;
                 foreach (String s in strlist)
                 {
-                    if (count == 3)
+                    if (count == maxcount)
                     {
                         for (int i = 0; i < inputs.Length; i++)
                         {
@@ -728,6 +773,49 @@ namespace inventory
                     count++;
                 }
                 //Console.WriteLine(readText);
+            }
+        }
+
+        private void saveBooks()
+        {
+            string path = "";
+            path = System.AppContext.BaseDirectory;
+            Console.WriteLine(path);
+
+            string fullPath = path + @"\Files\Books";
+            if (!Directory.Exists(fullPath))                            //Checks if File exists
+            {
+                Directory.CreateDirectory(fullPath);
+            }
+            foreach (string booktitle in books.Keys)
+            {
+                fullPath = path + @"\Files\Books\" + booktitle + ".csv";
+                string backupPath = path + @"\Files\Books\" + booktitle + "_backup.csv";
+                if (File.Exists(fullPath))                                  //Print contents to backup called info_backup.csv
+                {
+                    //fullPath = backupPath;
+                }
+                // Write file using StreamWriter  
+                using (StreamWriter writer = new StreamWriter(backupPath))
+                {
+                    writer.WriteLine(String.Format("{0},{1},{2},{3},", "Number", "Serial", "Location", "Defective"));
+                    foreach (string key in books[booktitle].Keys)
+                    {
+                        
+                            writer.WriteLine(String.Format("{0},{1},{2},{3},",
+                            key,
+                            books[booktitle][key.ToString()]["serial"],
+                            books[booktitle][key.ToString()]["location"],
+                            books[booktitle][key.ToString()]["defective"]
+                            ));
+                    }
+                }
+                File.Delete(fullPath);
+                File.Copy(backupPath, fullPath);
+                File.Delete(backupPath);
+                // Read a file  
+                string readText = File.ReadAllText(fullPath);
+                Console.WriteLine(readText);
             }
         }
         private void saveInfo()
@@ -845,8 +933,63 @@ namespace inventory
         private void SaveAsCSV_Click(object sender, RoutedEventArgs e)
         {
             saveInfo();
+            saveBooks();
             saveLedgerInfo();
             saveLedgers();
+        }
+        
+
+        private void UnmarkDefective_Click(object sender, RoutedEventArgs e)
+        {
+            if ((bool)radiobutton_Books.IsChecked)
+            {
+                dg2selecteditems = new Dictionary<string, Dictionary<string, bool>> { };
+
+                if (dg2.SelectedItems.Count > 0)
+                {
+                    Books book = new Books();
+                    foreach (var obj in dg2.SelectedItems)
+                    {
+                        book = obj as Books;
+                        if (!dg2selecteditems.ContainsKey(book.Title))
+                        {
+                            dg2selecteditems.Add(book.Title, new Dictionary<string, bool>());
+                        }
+                        dg2selecteditems[book.Title].Add(book.Number, true);
+                        Console.WriteLine(dg2selecteditems[book.Title][book.Number]);
+
+                        books[book.Title][book.Number]["defective"] = "False";
+                    }
+                }
+                dg2.Items.Clear();
+                dg2.Columns.Clear();
+            }
+        }
+        private void MarkDefective_Click(object sender, RoutedEventArgs e)
+        {
+            if ((bool)radiobutton_Books.IsChecked)
+            {
+                dg2selecteditems = new Dictionary<string, Dictionary<string, bool>> { };
+
+                if (dg2.SelectedItems.Count > 0)
+                {
+                    Books book = new Books();
+                    foreach (var obj in dg2.SelectedItems)
+                    {
+                        book = obj as Books;
+                        if (!dg2selecteditems.ContainsKey(book.Title))
+                        {
+                            dg2selecteditems.Add(book.Title, new Dictionary<string, bool>());
+                        }
+                        dg2selecteditems[book.Title].Add(book.Number, true);
+                        Console.WriteLine(dg2selecteditems[book.Title][book.Number]);
+
+                        books[book.Title][book.Number]["defective"] = "True";
+                    }
+                }
+                dg2.Items.Clear();
+                dg2.Columns.Clear();
+            }
         }
         
         private void RemoveSelected_Click(object sender, RoutedEventArgs e)
@@ -875,6 +1018,11 @@ namespace inventory
             updatedg1();
         }
 
+        private void radiobutton_Movements_Click(object sender, RoutedEventArgs e)
+        {
+            //MessageBox.Show("Ledgers Clicked!");
+            //updatedg1();
+        }
         internal static class ConsoleAllocator
         {
             [DllImport(@"kernel32.dll", SetLastError = true)]
@@ -918,166 +1066,6 @@ namespace inventory
             Load_ledgerinfo();
             Load_ledgers();
         }
-        static void Write1(Dictionary<string, Dictionary<string, string>> dictionary, string file)
-        {
-            using (FileStream fs = File.OpenWrite(file))
-            using (BinaryWriter writer = new BinaryWriter(fs))
-            {
-                // Put count.
-                writer.Write(dictionary.Count);
-                //Console.WriteLine(dictionary.Count);
-                // Write pairs.
-                foreach (var pair in dictionary)
-                {
-                    writer.Write(pair.Key);
-                    writer.Write(dictionary[pair.Key].Count);
-                    foreach (var pair2 in pair.Value)
-                    {
-                        writer.Write(pair2.Key);
-                        writer.Write(pair2.Value);
-                        //Console.WriteLine(pair2);
-                    }
-                }
-            }
-        }
-        static void Write2(Dictionary<string, Dictionary<string, Dictionary<string, string>>> dictionary, string file)
-        {
-            using (FileStream fs = File.OpenWrite(file))
-            using (BinaryWriter writer = new BinaryWriter(fs))
-            {
-                // Put count.
-                writer.Write(dictionary.Count);
-                //Console.WriteLine(dictionary.Count);
-                // Write pairs.
-                foreach (var pair in dictionary)
-                {
-                    writer.Write(pair.Key);
-                    writer.Write(dictionary[pair.Key].Count);
-                    //Console.WriteLine(pair.Key);
-                    //Console.WriteLine(dictionary[pair.Key].Count);
-                    foreach (var pair2 in pair.Value)
-                    {
-                        writer.Write(pair2.Key);
-                        writer.Write(dictionary[pair2.Key].Count);
-                        //Console.WriteLine(pair2.Key);
-                        //Console.WriteLine(dictionary[pair.Key].Count);
-                        foreach (var pair3 in pair2.Value)
-                        {
-                            writer.Write(pair3.Key);
-                            writer.Write(pair3.Value);
-                            //Console.WriteLine(pair3.Key);
-                            //Console.WriteLine(pair3.Value);
-                        }
-                    }
-                }
-            }
-        }
-        static Dictionary<string, Dictionary<string, Dictionary<string, string>>> Read2(string file)
-        {
-            var result = new Dictionary<string, Dictionary<string, Dictionary<string, string>>>();
-            using (FileStream fs = File.OpenRead(file))
-            using (BinaryReader reader = new BinaryReader(fs))
-            {
-                // Get count.
-                int count = reader.ReadInt32();
-                //Console.WriteLine(count);
-                // Read in all pairs.
-                for (int i = 0; i < count; i++)
-                {
-                    string key = reader.ReadString();
-                    result[key] = new Dictionary<string, Dictionary<string, string>>();
-                    Console.WriteLine(key);
-                    int count2 = reader.ReadInt32();
-                    Console.WriteLine(count2);
-                    for (int j = 0; j < count2; j++)
-                    {
-                        string key2 = reader.ReadString();
-                        result[key][key2] = new Dictionary<string, string>();
-                        Console.WriteLine(key2);
-                        int count3 = reader.ReadInt32();
-                        for (int k = 0; k < count3; k++)
-                        {
-                            string a = reader.ReadString();
-                            string b = reader.ReadString();
-                            result[key][key2][a] = b;
-                        }
-                    }
-                }
-            }
-            return result;
-        }
-
-        static Dictionary<string, Dictionary<string, string>> Read1(string file)
-        {
-            var result = new Dictionary<string, Dictionary<string, string>>();
-            using (FileStream fs = File.OpenRead(file))
-            using (BinaryReader reader = new BinaryReader(fs))
-            {
-                // Get count.
-                int count = reader.ReadInt32();
-                //Console.WriteLine(count);
-                // Read in all pairs.
-                for (int i = 0; i < count; i++)
-                {
-                    string key = reader.ReadString();
-                    result[key] = new Dictionary<string, string>();
-                    //Console.WriteLine(key);
-                    int count2 = reader.ReadInt32();
-                    //Console.WriteLine(count2);
-                    for (int j = 0; j < count2; j++)
-                    {
-
-                        string a = reader.ReadString();
-                        string b = reader.ReadString();
-                        result[key][a] = b;
-                        //Console.WriteLine(a);
-                        //Console.WriteLine(b);
-                    }
-                }
-            }
-            return result;
-        }
-
-        private void InitializeDataBin()
-        {
-            try
-            {
-                info = Read1("C:\\Users\\NakaMura\\Desktop\\data\\info.bin");
-                Console.WriteLine("Initialized info " + info.Count);
-                ledgerinfo = Read1("C:\\Users\\NakaMura\\Desktop\\data\\ledgerinfo.bin");
-                Console.WriteLine("Initialized ledgerinfo" + ledgerinfo.Count);
-                books = Read2("C:\\Users\\NakaMura\\Desktop\\data\\books.bin");
-                Console.WriteLine("Initialized books " + books.Count);
-                ledgers = Read2("C:\\Users\\NakaMura\\Desktop\\data\\ledgers.bin");
-                Console.WriteLine("Initialized ledgers " + ledgers.Count);
-            }
-            catch
-            {
-
-            }
-            
-        }
-        private void UpdateDataBin()
-        {
-            try
-            {
-                Write1(info, "C:\\Users\\NakaMura\\Desktop\\data\\info.bin");
-                info = Read1("C:\\Users\\NakaMura\\Desktop\\data\\info.bin");
-                Write2(books, "C:\\Users\\NakaMura\\Desktop\\data\\books.bin");
-                books = Read2("C:\\Users\\NakaMura\\Desktop\\data\\books.bin");
-
-                Write1(ledgerinfo, "C:\\Users\\NakaMura\\Desktop\\data\\ledgerinfo.bin");
-                ledgerinfo = Read1("C:\\Users\\NakaMura\\Desktop\\data\\ledgerinfo.bin");
-
-                               
-                Write2(ledgers, "C:\\Users\\NakaMura\\Desktop\\data\\ledgers.bin");
-                ledgers = Read2("C:\\Users\\NakaMura\\Desktop\\data\\ledgers.bin");
-            }
-            catch
-            {
-                Console.WriteLine("Error!");
-            }
-        }
 
         public Dictionary<string, Dictionary<string, string>> info =
         new Dictionary<string, Dictionary<string, string>> { };
@@ -1109,6 +1097,7 @@ namespace inventory
             public string Number { get; set; }
             public string Serial { get; set; }
             public string Location { get; set; }
+            public string Defective { get; set; }
         }
         public class Ledger
         {
@@ -1130,7 +1119,7 @@ namespace inventory
 
         private string[] bookinfoColumnHeaders = { "Title", "Quantity", "Size" };
         private string[] ledgerinfoColumnHeaders = { "Title", "DateCreated", "EntriesCount" };
-        private string[] dg2ColumnHeaders = { "Title", "Number", "Serial", "Location" };
+        private string[] dg2ColumnHeaders = { "Title", "Number", "Serial", "Location", "Defective" };
         private string[] ledgeritemsColumnHeaders = { "Type", "LedgerTitle", "Title", "FormerQuantity", "Quantity", "LatterQuantity", "Size", "DateCreated" };
     }
 }

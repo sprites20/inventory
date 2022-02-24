@@ -36,7 +36,9 @@
                     <TextBox x:Name="tbox_title" HorizontalAlignment="Left" Height="18" Margin="73,15,0,0" Text="" TextWrapping="Wrap" VerticalAlignment="Top" Width="166" />
                     <TextBox x:Name="tbox_quantity" HorizontalAlignment="Left" Height="20" Margin="73,43,0,0" Text="" TextWrapping="Wrap" VerticalAlignment="Top" Width="166" />
                     <TextBox x:Name="tbox_size" HorizontalAlignment="Left" Height="19" Margin="73,73,0,0" Text="" TextWrapping="Wrap" VerticalAlignment="Top" Width="166" />
-                    <Button Content="Add To Ledger" HorizontalAlignment="Left" Margin="10,110,0,0" VerticalAlignment="Top" Height="30" Width="86" Click="AddToLedger_Click"/>
+                    <Button Content="Add To Ledger" HorizontalAlignment="Left" Margin="12,143,0,0" VerticalAlignment="Top" Height="30" Width="86" Click="AddToLedger_Click"/>
+                    <TextBlock HorizontalAlignment="Left" Height="24" Margin="12,102,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="56"><Run Language="en-ph" Text="Location"/></TextBlock>
+                    <ComboBox Name="LocationCB" Margin="73,102,49,57"/>
 
                 </Grid>
             </Border>
@@ -48,15 +50,18 @@
                         SelectedCellsChanged="dg_SelectedCellsChanged" Margin="10,16,219,324"
          />
                     <DataGrid 
-                        x:Name ="dg2" Margin="10,329,219,11"
+                        x:Name ="dg2" Margin="10,329,219,11" SelectedCellsChanged="dg2_SelectedCellsChanged"
          />
-                    <GroupBox Header="" HorizontalAlignment="Left" Height="82" Margin="621,16,0,0" VerticalAlignment="Top" Width="154">
-                        <StackPanel HorizontalAlignment="Left" Height="60" VerticalAlignment="Top" Width="144">
-                            <RadioButton x:Name="radiobutton_Books" IsChecked="true" Content="Books" Height="28" Width="96" Click="radiobutton_Books_Click"/>
-                            <RadioButton x:Name="radiobutton_Ledgers" Content="Ledgers" Height="23" Width="96" Click="radiobutton_Ledgers_Click"/>
+                    <GroupBox Header="" HorizontalAlignment="Left" Height="126" Margin="621,16,0,0" VerticalAlignment="Top" Width="154">
+                        <StackPanel HorizontalAlignment="Left" Height="99" VerticalAlignment="Top" Width="144">
+                            <RadioButton x:Name="radiobutton_Books" IsChecked="true" Content="Books" Height="25" Width="96" Click="radiobutton_Books_Click"/>
+                            <RadioButton x:Name="radiobutton_Ledgers" Content="Ledgers" Height="28" Width="96" Click="radiobutton_Ledgers_Click"/>
+                            <RadioButton Content="Movements" Height="25" Width="96" Click="radiobutton_Movements_Click"/>
                         </StackPanel>
                     </GroupBox>
-                    <Button Content="Save as CSV" HorizontalAlignment="Left" Margin="621,242,0,0" VerticalAlignment="Top" Height="30" Width="86" Click="SaveAsCSV_Click"/>
+                    <Button Content="Save as CSV" HorizontalAlignment="Left" Margin="621,221,0,0" VerticalAlignment="Top" Height="30" Width="86" Click="SaveAsCSV_Click"/>
+                    <Button Content="Mark Defective" HorizontalAlignment="Left" Margin="591,371,0,0" VerticalAlignment="Top" Height="30" Width="86" Click="MarkDefective_Click"/>
+                    <Button Content="Unmark Defective" HorizontalAlignment="Left" Margin="682,371,0,0" VerticalAlignment="Top" Height="30" Width="102" Click="UnmarkDefective_Click"/>
                 </Grid>
             </Border>
         </Grid>
