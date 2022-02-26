@@ -3,7 +3,9 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
         xmlns:local="clr-namespace:inventory"
+        WindowStartupLocation="CenterScreen"
         mc:Ignorable="d"
         ResizeMode="NoResize"
         Title="MainWindow" Height="764" Width="1174">
@@ -23,28 +25,23 @@
                     <Button Margin="9,202,188,10" Click="ConfirmLedger_Click" Content="Confirm" Grid.Row="1"/>
                     <StackPanel HorizontalAlignment="Left" Height="33" Margin="66,62,0,0" VerticalAlignment="Top" Width="196" Orientation="Horizontal"/>
                     <Button Margin="99,202,99,10" Click="RemoveSelected_Click" Content="Remove&#xA;Selected" Grid.Row="1"/>
-                    <TextBlock HorizontalAlignment="Left" Height="38" Margin="10,40,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="56" TextAlignment="Left"><Run Text="Ledger"/><LineBreak/><Run Language="en-ph" Text="  "/><Run Text="Title"/></TextBlock>
-                    <TextBox x:Name="tbox_ledgertitle" HorizontalAlignment="Left" Height="18" Margin="67,50,0,0" Text="" TextWrapping="Wrap" VerticalAlignment="Top" Width="184" />
+                    <TextBox materialDesign:HintAssist.Hint="Ledger Title" Style="{StaticResource MaterialDesignFloatingHintTextBox}" x:Name="tbox_ledgertitle" HorizontalAlignment="Left" Height="37" Margin="66,13,0,0" Text="" TextWrapping="Wrap" VerticalAlignment="Top" Width="182" />
                     <Button Content="Clear" Click="ClearLedger_Click" HorizontalAlignment="Left" Height="36" Margin="186,202,0,0" VerticalAlignment="Top" Width="84" Grid.Row="1"/>
                 </Grid>
             </Border>
             <Border x:Name="AddToLedgerBorder" BorderThickness="1" BorderBrush="Black" HorizontalAlignment="Left" Height="211" Margin="816,463,0,0" VerticalAlignment="Top" Width="324" Background="White">
                 <Grid HorizontalAlignment="Left" Height="183" VerticalAlignment="Center" Width="288" Margin="5,0,0,0">
-                    <TextBlock HorizontalAlignment="Left" Height="24" Margin="12,15,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="56"><Run Language="en-ph" Text="Title"/></TextBlock>
-                    <TextBlock HorizontalAlignment="Left" Height="24" Margin="12,43,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="56"><Run Language="en-ph" Text="Quantity"/></TextBlock>
-                    <TextBlock HorizontalAlignment="Left" Height="24" Margin="12,73,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="56"><Run Language="en-ph" Text="Size"/></TextBlock>
-                    <TextBox x:Name="tbox_title" HorizontalAlignment="Left" Height="18" Margin="73,15,0,0" Text="" TextWrapping="Wrap" VerticalAlignment="Top" Width="166" />
-                    <TextBox x:Name="tbox_quantity" HorizontalAlignment="Left" Height="20" Margin="73,43,0,0" Text="" TextWrapping="Wrap" VerticalAlignment="Top" Width="166" />
-                    <TextBox x:Name="tbox_size" HorizontalAlignment="Left" Height="19" Margin="73,73,0,0" Text="" TextWrapping="Wrap" VerticalAlignment="Top" Width="166" />
-                    <Button Content="Add To Ledger" HorizontalAlignment="Left" Margin="12,143,0,0" VerticalAlignment="Top" Height="30" Width="86" Click="AddToLedger_Click"/>
-                    <TextBlock HorizontalAlignment="Left" Height="24" Margin="12,102,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="56"><Run Language="en-ph" Text="Location"/></TextBlock>
-                    <ComboBox Name="LocationCB" Margin="73,102,49,57"/>
+                    <TextBox materialDesign:HintAssist.Hint="Title" Style="{StaticResource MaterialDesignFloatingHintTextBox}" x:Name="tbox_title" HorizontalAlignment="Left" Height="37" Margin="73,0,0,0" Text="" TextWrapping="Wrap" VerticalAlignment="Top" Width="166" />
+                    <TextBox materialDesign:HintAssist.Hint="Quantity" Style="{StaticResource MaterialDesignFloatingHintTextBox}" x:Name="tbox_quantity" HorizontalAlignment="Left" Height="37" Margin="73,34,0,0" Text="" TextWrapping="Wrap" VerticalAlignment="Top" Width="166" />
+                    <TextBox materialDesign:HintAssist.Hint="Size" Style="{StaticResource MaterialDesignFloatingHintTextBox}" x:Name="tbox_size" HorizontalAlignment="Left" Height="37" Margin="73,68,0,0" Text="" TextWrapping="Wrap" VerticalAlignment="Top" Width="166" />
+                    <Button Content="Add To Ledger" HorizontalAlignment="Left" Margin="14,153,0,0" VerticalAlignment="Top" Height="30" Width="130" Click="AddToLedger_Click"/>
+                    <ComboBox materialDesign:HintAssist.Hint="Location" Style="{StaticResource MaterialDesignFloatingHintComboBox}" Name="LocationCB" Height="37" Margin="73,105,49,41"/>
 
                 </Grid>
             </Border>
             <Border x:Name="LedgerBorder" BorderThickness="1" BorderBrush="Black" HorizontalAlignment="Left" Height="670" Margin="6,4,0,0" VerticalAlignment="Top" Width="805" Background="White">
                 <Grid Margin="0,0,9,9" Visibility="Visible">
-                    <TextBox x:Name="searchbox" HorizontalAlignment="Left" Height="26" Margin="620,169,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="160" TextChanged="textChangedEventHandler"/>
+                    <TextBox materialDesign:HintAssist.Hint="Search" Style="{StaticResource MaterialDesignFloatingHintTextBox}" x:Name="searchbox" HorizontalAlignment="Left" Height="41" Margin="620,169,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="160" TextChanged="textChangedEventHandler"/>
                     <DataGrid 
                         x:Name ="dg"
                         SelectedCellsChanged="dg_SelectedCellsChanged" Margin="10,16,219,324"
@@ -59,9 +56,9 @@
                             <RadioButton Content="Movements" Height="25" Width="96" Click="radiobutton_Movements_Click"/>
                         </StackPanel>
                     </GroupBox>
-                    <Button Content="Save as CSV" HorizontalAlignment="Left" Margin="621,221,0,0" VerticalAlignment="Top" Height="30" Width="86" Click="SaveAsCSV_Click"/>
-                    <Button Content="Mark Defective" HorizontalAlignment="Left" Margin="591,371,0,0" VerticalAlignment="Top" Height="30" Width="86" Click="MarkDefective_Click"/>
-                    <Button Content="Unmark Defective" HorizontalAlignment="Left" Margin="682,371,0,0" VerticalAlignment="Top" Height="30" Width="102" Click="UnmarkDefective_Click"/>
+                    <Button Content="Save as CSV" HorizontalAlignment="Left" Margin="620,259,0,0" VerticalAlignment="Top" Height="35" Width="112" Click="SaveAsCSV_Click"/>
+                    <Button Content="Mark Defective" HorizontalAlignment="Left" Margin="620,365,0,0" VerticalAlignment="Top" Height="30" Width="150" Click="MarkDefective_Click"/>
+                    <Button Content="Unmark Defective" HorizontalAlignment="Left" Margin="621,409,0,0" VerticalAlignment="Top" Height="30" Width="150" Click="UnmarkDefective_Click"/>
                 </Grid>
             </Border>
         </Grid>
