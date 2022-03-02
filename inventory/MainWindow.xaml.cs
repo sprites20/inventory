@@ -1229,7 +1229,6 @@ namespace inventory
             string datecreated = System.DateTime.Now.ToString("dd-MM-yyyy HHmmssff");
             string Title = tbox_ledgertitle.Text;
 
-            int count = 0;
 
             if (Title == "")
             {
@@ -1251,13 +1250,23 @@ namespace inventory
 
                 string nextlocation = MoveCB.Text;
                 Books book = new Books();
-                count = 0;
+                int count = 0;
                 int count2 = dg2.SelectedItems.Count;
-                if(nextlocation == "Sold")
+                int count3 = 0;
+                try
+                {
+                    count3 = int.Parse(info[book.Title]["quantity"]);
+                }
+                catch
+                {
+
+                }
+                
+                
+                if (nextlocation == "Sold")
                 {
                     ledgerinfo.Add(Title, new Dictionary<string, string>());
                     ledgerinfo[Title].Add("datecreated", datecreated);
-                    
                 }
                 foreach (var obj in dg2.SelectedItems)
                 {
@@ -1271,22 +1280,32 @@ namespace inventory
 
                     string serial = books[book.Title][book.Number]["serial"];
 
-                    if (books[book.Title][book.Number]["location"] != "Sold")
+                    if (nextlocation == "Sold")
                     {
-                        
+                        if (books[book.Title][book.Number]["location"] != "Sold")
+                        {
+                            info[book.Title]["quantity"] = (int.Parse(info[book.Title]["quantity"]) - 1).ToString();
+                            movementledgers[Title].Add(serial, new Dictionary<string, string>());
+                            movementledgers[Title][serial].Add("formerlocation", books[book.Title][book.Number]["location"]);
+                            books[book.Title][book.Number]["location"] = nextlocation;
+                            movementledgers[Title][serial].Add("latterlocation", books[book.Title][book.Number]["location"]);
+                            movementledgers[Title][serial].Add("title", book.Title);
+                            count++;
 
-                        info[book.Title]["quantity"] = (int.Parse(info[book.Title]["quantity"]) - 1).ToString();
+                        }
+                        else
+                        {
+                            count2--;
+                        }
+                    }
+                    else
+                    {
                         movementledgers[Title].Add(serial, new Dictionary<string, string>());
                         movementledgers[Title][serial].Add("formerlocation", books[book.Title][book.Number]["location"]);
                         books[book.Title][book.Number]["location"] = nextlocation;
                         movementledgers[Title][serial].Add("latterlocation", books[book.Title][book.Number]["location"]);
                         movementledgers[Title][serial].Add("title", book.Title);
                         count++;
-
-                    }
-                    else
-                    {
-                        count2--;
                     }
                 }
 
@@ -1294,17 +1313,18 @@ namespace inventory
                 {
                     ledgerinfo[Title].Add("entriescount", "1");
                 }
-
+                count2 -= count;
                 movementledgerinfo[Title].Add("entriescount", count.ToString());
                 movementledgerinfo[Title].Add("datecreated", datecreated);
                 if (count2 == 0)
                 {
-                    movementledgerinfo.Remove(Title);
+                    //movementledgerinfo.Remove(Title);
                 }
                 if (nextlocation == "Sold")
                 {
                     updatedg1();
                 }
+                updatedg1();
             }
             dg2.Items.Clear();
             dg2.Columns.Clear();
