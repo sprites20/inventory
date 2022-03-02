@@ -33,6 +33,7 @@ namespace inventory
             ConsoleAllocator.ShowConsoleWindow();
             InitializeComponent();
             List<string> locations = new List<string>();
+            locations.Add("Custom");
             locations.Add("Shelf A");
             locations.Add("Shelf B");
             locations.Add("Shelf C");
@@ -278,20 +279,18 @@ namespace inventory
                     column.Binding = new Binding(dg2ColumnHeaders[i]);
                     dg2.Columns.Add(column);
                 }
-
                 if (dg.SelectedItems.Count > 0)
                 {
                     DataItem dataitem = new DataItem();
                     Books book = new Books();
-                    int i = 0;
                     foreach (var obj in dg.SelectedItems)
                     {
                         dataitem = obj as DataItem;
-                            
-                        foreach(string key in books[dataitem.Title].Keys)
+                        
+                        for(int i = 0; i < books[dataitem.Title].Count; i++) 
                         {
+                            Console.WriteLine(dataitem.Title);
                             dg2.Items.Add(new Books { Title = dataitem.Title, Number = i.ToString(), Serial = dataitem.Title + "_" + i.ToString(), Location = books[dataitem.Title][i.ToString()]["location"], Defective = books[dataitem.Title][i.ToString()]["defective"] });
-                            i++;
                         }
                             
                     }
@@ -444,25 +443,35 @@ namespace inventory
                 }
                 */
 
-                int qty = int.Parse(info[Title]["quantity"]);
-                for (int i = intQuantity; i < qty; i++)
+                
+                int qty2 = books[Title].Count;
+                int qty = qty2+int.Parse(Quantity);
+                for (int i = qty2; i < qty; i++)
                 {
-                    books[Title].Add(i.ToString(), new Dictionary<string, string>());
-                    books[Title][i.ToString()].Add("serial", Title + "_" + i.ToString());
-                    books[Title][i.ToString()].Add("location", Location);
-                    books[Title][i.ToString()].Add("defective", "False");
-                }
+                    Console.WriteLine(i);
+                    try
+                    {
+                        books[Title].Add(i.ToString(), new Dictionary<string, string>());
+                        books[Title][i.ToString()].Add("serial", Title + "_" + i.ToString());
+                        books[Title][i.ToString()].Add("location", Location);
+                        books[Title][i.ToString()].Add("defective", "False");
+                    }
+                    catch
+                    {
 
+                    }
+                }
             }
         }
 
         private void newLedgerInfo(string Title, string DateCreated, string EntriesCount)
         {
-                ledgerinfo.Add(Title, new Dictionary<string, string>());
-                ledgerinfo[Title].Add("datecreated", DateCreated);
-                ledgerinfo[Title].Add("entriescount", EntriesCount);
+            ledgerinfo.Add(Title, new Dictionary<string, string>());
+            ledgerinfo[Title].Add("datecreated", DateCreated);
+            ledgerinfo[Title].Add("entriescount", EntriesCount);
 
-                ledgers.Add(Title, new Dictionary<string, Dictionary<string, string>>());
+            ledgers.Add(Title, new Dictionary<string, Dictionary<string, string>>());
+
             Console.WriteLine("Created new ledger");
             Console.WriteLine(ledgers[Title]);
             string lastkye = "";
@@ -507,9 +516,7 @@ namespace inventory
                 ledgers[Title][key].Add("quantity", currentledger[key]["quantity"]);
                 try
                 {   
-                        ledgers[Title][key].Add("latterquantity", (int.Parse(ledgers[Title][key]["formerquantity"]) + int.Parse(currentledger[key]["quantity"])).ToString());
-                    
-
+                    ledgers[Title][key].Add("latterquantity", (int.Parse(ledgers[Title][key]["formerquantity"]) + int.Parse(currentledger[key]["quantity"])).ToString());
                     //Console.WriteLine("kye: " + info[kye]["quantity"]);
                 }
                 catch
@@ -563,6 +570,7 @@ namespace inventory
             ledger.Items.Clear();
             foreach (string key in currentledger.Keys)
             {
+                string kye = key.Substring(0, key.Length - currentledger[key]["location"].Length - 1);
                 int i = 0;
                 string[] Inserts = { "", "", "" };
                 foreach (string innerKey in currentledger[key].Keys)
@@ -573,7 +581,7 @@ namespace inventory
                     System.Console.WriteLine("{0}", i);
                     i++;
                 }
-                ledger.Items.Add(new DataItem { Title = tbox_title.Text, Quantity = Inserts[0], Size = Inserts[1], Location = Inserts[2] });
+                ledger.Items.Add(new DataItem { Title = kye, Quantity = Inserts[0], Size = Inserts[1], Location = Inserts[2] });
             }
             // create and add two lines of fake data to be displayed, here
             //dg.Items.Add(new DataItem { Title = key, Size = "b.2", Quantity = "b.3" });
@@ -643,7 +651,20 @@ namespace inventory
 
                 else
                 {
-                    string key = tbox_title.Text + " " + LocationCB.Text;
+                    string key = "";
+                    if (LocationCB.Text == "Custom")
+                    {
+                        Console.WriteLine(LocationCB.Text);
+                        if (tbox_customlocation.Text == "")
+                        {
+                            tbox_customlocation.Text = "Unknown";
+                        }
+                        key = tbox_title.Text + " " + tbox_customlocation.Text;
+                    }
+                    else
+                    {
+                        key = tbox_title.Text + " " + LocationCB.Text;
+                    }
                     if (!currentledger.ContainsKey(key))
                     {   
                         if(int.Parse(tbox_quantity.Text) >= 0)
@@ -651,7 +672,20 @@ namespace inventory
                             currentledger.Add(key, new Dictionary<string, string>());
                             currentledger[key].Add("quantity", tbox_quantity.Text);
                             currentledger[key].Add("size", tbox_size.Text);
-                            currentledger[key].Add("location", LocationCB.Text);
+
+                            if (LocationCB.Text == "Custom")
+                            {
+                                Console.WriteLine(LocationCB.Text);
+                                if (tbox_customlocation.Text == "")
+                                 {
+                                        tbox_customlocation.Text = "Unknown";
+                                 }
+                                    currentledger[key].Add("location", tbox_customlocation.Text);
+                            }
+                            else
+                            {
+                                currentledger[key].Add("location", LocationCB.Text);
+                            }
                         }
                         else
                         {
@@ -1329,9 +1363,11 @@ namespace inventory
         }
         
         private void RemoveSelected_Click(object sender, RoutedEventArgs e)
-        {
+        {   
+
             foreach (string key in selectedinledger)
             {
+                Console.WriteLine(key);
                 currentledger.Remove(key);
             }
             updateledger();
