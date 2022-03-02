@@ -28,30 +28,22 @@ namespace inventory
     /// 
     public partial class MainWindow : Window
     {
-
         public MainWindow()
         {
             ConsoleAllocator.ShowConsoleWindow();
             InitializeComponent();
-            List<string> locations = new List<string>();
-            locations.Add("Shelf A");
-            locations.Add("Shelf B");
-            locations.Add("Shelf C");
-            locations.Add("Shelf D");
-            locations.Add("Shelf E");
-            locations.Add("Shelf F");
-            locations.Add("Shelf G");
-            locations.Add("Shelf H");
-            locations.Add("Shelf I");
-            locations.Add("Shelf J");
-
-            foreach (string item in locations)
-            {
-                LocationCB.Items.Add(item);
-                MoveCB.Items.Add(item);
-            }
 
             //Initialize Stuff Here
+            LocationCB.Items.Add("Shelf A");
+            LocationCB.Items.Add("Shelf B");
+            LocationCB.Items.Add("Shelf C");
+            LocationCB.Items.Add("Shelf D");
+            LocationCB.Items.Add("Shelf E");
+            LocationCB.Items.Add("Shelf F");
+            LocationCB.Items.Add("Shelf G");
+            LocationCB.Items.Add("Shelf H");
+            LocationCB.Items.Add("Shelf I");
+            LocationCB.Items.Add("Shelf J");
 
             LoadCSV();
 
@@ -111,7 +103,6 @@ namespace inventory
             //search("Harry Potter1");
         }
 
-        
         private void search(string tobesearched)
         {
             dg.Items.Clear();
@@ -221,34 +212,6 @@ namespace inventory
                     dg.Items.Add(new Ledger { Title = key, DateCreated = Inserts[0], EntriesCount = Inserts[1] });
                 }
             }
-            else if ((bool)radiobutton_Movements.IsChecked)
-            {
-                int len = moveinfoLedgersColumnHeaders.Length;
-                for (int i = 0; i < len; ++i)
-                {
-                    var column = new DataGridTextColumn();
-
-                    column.Header = ledgerinfoColumnHeaders[i];
-                    column.Binding = new Binding(ledgerinfoColumnHeaders[i]);
-                    dg.Columns.Add(column);
-                }
-                dg.Items.Clear();
-                foreach (string key in moveledgersinfo.Keys)
-                {
-                    int i = 0;
-                    string[] Inserts = { "", "", "" };
-                    foreach (string innerKey in moveledgersinfo[key].Keys)
-                    {
-                        System.Console.WriteLine("{0}\t{1}\t{2}", key, innerKey, moveledgersinfo[key][innerKey]);
-                        //dict[key][innerKey];
-                        Inserts[i] = moveledgersinfo[key][innerKey];
-                        System.Console.WriteLine("{0}", i);
-                        i++;
-                    }
-
-                    dg.Items.Add(new MoveLedgerInfo { Title = key, DateCreated = Inserts[0], EntriesCount = Inserts[1] });
-                }
-            }
         }
 
         private void clearLedger()
@@ -346,50 +309,6 @@ namespace inventory
                                 Size = ledgers[ledger.Title][key]["size"],
                                 Location = ledgers[ledger.Title][key]["location"],
                                 DateCreated = ledgers[ledger.Title][key]["datecreated"] });
-                        }
-                        //dg2.Items.Add(new LedgerItems { LedgerTitle = ledger.Title, Title = ledgers[ledger.Title][] });
-                    }
-                }
-                else
-                {
-
-                }
-            }
-            else if ((bool)radiobutton_Movements.IsChecked)
-            {
-                //string str = "";
-                dg2.Items.Clear();
-                dg2.Columns.Clear();
-                int len = moveledgersColumnHeaders.Length;
-                for (int i = 0; i < len; ++i)
-                {
-                    var column = new DataGridTextColumn();
-
-                    column.Header = moveledgersColumnHeaders[i];
-                    column.Binding = new Binding(moveledgersColumnHeaders[i]);
-                    dg2.Columns.Add(column);
-                }
-                if (dg.SelectedItems.Count > 0)
-                {
-                    MoveLedgerInfo moveledgerinfo = new MoveLedgerInfo();
-                    MoveLedgers moveledger = new MoveLedgers();
-
-                    foreach (var obj in dg.SelectedItems)
-                    {
-                        moveledgerinfo = obj as MoveLedgerInfo;
-                        int intQuantity = int.Parse(moveledgerinfo.EntriesCount);
-                        //MessageBox.Show(intQuantity.ToString());
-                        foreach (var key in moveledgers[moveledgerinfo.Title].Keys)
-                        {
-                            
-                            //string kye = key.Substring(0, key.Length - ledgers[ledger.Title][key]["location"].Length - 1);
-                            dg2.Items.Add(new MoveLedgers
-                            {
-                                Title = moveledgers[moveledgerinfo.Title][key]["booktitle"],
-                                Serial = key,
-                                FormerLocation = moveledgers[moveledgerinfo.Title][key]["formerlocation"],
-                                LatterLocation = moveledgers[moveledgerinfo.Title][key]["latterlocation"],
-                            });
                         }
                         //dg2.Items.Add(new LedgerItems { LedgerTitle = ledger.Title, Title = ledgers[ledger.Title][] });
                     }
@@ -1068,48 +987,6 @@ namespace inventory
                 Console.WriteLine(readText);
             }
         }
-        private void saveMoveLedgers()
-        {
-            string path = "";
-            path = System.AppContext.BaseDirectory;
-            Console.WriteLine(path);
-
-            string fullPath = path + @"\Files\MovementLedgers";
-            if (!Directory.Exists(fullPath))                            //Checks if File exists
-            {
-                Directory.CreateDirectory(fullPath);
-            }
-            foreach (string movekey in moveledgers.Keys)
-            {
-                fullPath = path + @"\Files\MovementLedgers\" + movekey + ".csv";
-                string backupPath = path + @"\Files\MovementLedgers\" + movekey + "_backup.csv";
-                if (File.Exists(fullPath))                                  //Print contents to backup called info_backup.csv
-                {
-                    //fullPath = backupPath;
-                }
-                // Write file using StreamWriter  
-                using (StreamWriter writer = new StreamWriter(backupPath))
-                {
-                    writer.WriteLine(String.Format("{0},{1},{2},{3},", "Title", "Serial", "FormerLocation", "LatterLocation"));
-                    foreach (string key in moveledgers[movekey].Keys)
-                    {
-
-                        writer.WriteLine(String.Format("{0},{1},{2},{3},",
-                        moveledgers[movekey][key]["title"],
-                        key,
-                        moveledgers[movekey][key]["formerlocation"],
-                        moveledgers[movekey][key]["latterlocation"]
-                        ));
-                    }
-                }
-                File.Delete(fullPath);
-                File.Copy(backupPath, fullPath);
-                File.Delete(backupPath);
-                // Read a file  
-                string readText = File.ReadAllText(fullPath);
-                Console.WriteLine(readText);
-            }
-        }
         private void saveInfo()
         {
             string path = "";
@@ -1231,71 +1108,8 @@ namespace inventory
             saveLedgerInfo();
             saveLedgers();
         }
+        
 
-        private void MoveSelected_Click(object sender, RoutedEventArgs e)
-        {
-            if ((bool)radiobutton_Books.IsChecked)
-            {
-                string datecreated = System.DateTime.Now.ToString("dd-MM-yyyy HHmmssff");
-                string Title = tbox_movetitle.Text;
-                int count = 0;
-                dg2selecteditems = new Dictionary<string, Dictionary<string, bool>> { };
-
-                if (Title == "")
-                {
-                    Title = datecreated;
-                }
-
-                if (dg2.SelectedItems.Count > 0)
-                {
-                    Books book = new Books();
-                    foreach (var obj in dg2.SelectedItems)
-                    {
-                        book = obj as Books;
-                        if (!dg2selecteditems.ContainsKey(book.Title))
-                        {
-                            dg2selecteditems.Add(book.Title, new Dictionary<string, bool>());
-                        }
-                        dg2selecteditems[book.Title].Add(book.Number, true);
-                        Console.WriteLine(dg2selecteditems[book.Title][book.Number]);
-
-                        
-                        if (!moveledgers.ContainsKey(Title))
-                        {
-                            moveledgers.Add(Title, new Dictionary<string, Dictionary<string, string>>());
-                        }
-                        string serial = books[book.Title][book.Number]["serial"];
-                        moveledgers[Title].Add(serial, new Dictionary<string, string>());
-                        moveledgers[Title][serial].Add("booktitle", book.Title);
-                        moveledgers[Title][serial].Add("formerlocation", books[book.Title][book.Number]["location"]);
-                        books[book.Title][book.Number]["location"] = MoveCB.Text;
-                        moveledgers[Title][serial].Add("latterlocation", books[book.Title][book.Number]["location"]);
-                        count++;
-                    }
-                }
-
-               
-                if (moveledgers.Count == 0)
-                {
-                    MessageBox.Show("Ledger is Empty!");
-                }
-
-                if (!moveledgersinfo.ContainsKey(Title))
-                {
-                    moveledgersinfo.Add(Title, new Dictionary<string, string>());
-                    moveledgersinfo[Title].Add("datecreated", datecreated);
-                    moveledgersinfo[Title].Add("entriescount", count.ToString());
-                }
-
-
-
-                updatedg1();
-                tbox_ledgertitle.Text = "";
-
-                dg2.Items.Clear();
-                dg2.Columns.Clear();
-            }
-        }
         private void UnmarkDefective_Click(object sender, RoutedEventArgs e)
         {
             if ((bool)radiobutton_Books.IsChecked)
@@ -1378,7 +1192,7 @@ namespace inventory
         private void radiobutton_Movements_Click(object sender, RoutedEventArgs e)
         {
             //MessageBox.Show("Ledgers Clicked!");
-            updatedg1();
+            //updatedg1();
         }
         internal static class ConsoleAllocator
         {
@@ -1439,12 +1253,6 @@ namespace inventory
 
         public Dictionary<string, Dictionary<string, Dictionary<string, string>>> ledgers =
         new Dictionary<string, Dictionary<string, Dictionary<string, string>>> { };
-
-        public Dictionary<string, Dictionary<string, string>> moveledgersinfo =
-        new Dictionary<string, Dictionary<string, string>> { };
-
-        public Dictionary<string, Dictionary<string, Dictionary<string, string>>> moveledgers =
-        new Dictionary<string, Dictionary<string, Dictionary<string, string>>> { };
         /*
         public Dictionary<string, Dictionary<string, Dictionary<string, string>>> currentledger =
         new Dictionary<string, Dictionary<string, Dictionary<string, string>>> { };
@@ -1483,26 +1291,9 @@ namespace inventory
             public string DateCreated { get; set; }
         }
 
-        public class MoveLedgerInfo
-        {
-            public string Title { get; set; }
-            public string DateCreated { get; set; }
-            public string EntriesCount { get; set; }
-        }
-
-        public class MoveLedgers
-        {
-            public string Title { get; set; }
-            public string Serial { get; set; }
-            public string FormerLocation { get; set; }
-            public string LatterLocation { get; set; }
-        }
-
         private string[] bookinfoColumnHeaders = { "Title", "Quantity", "Size" };
         private string[] ledgerinfoColumnHeaders = { "Title", "DateCreated", "EntriesCount" };
         private string[] dg2ColumnHeaders = { "Title", "Number", "Serial", "Location", "Defective" };
         private string[] ledgeritemsColumnHeaders = { "Type", "LedgerTitle", "Title", "FormerQuantity", "Quantity", "LatterQuantity", "Size", "Location", "DateCreated" };
-        private string[] moveinfoLedgersColumnHeaders = { "Title", "DateCreated", "EntriesCount" };
-        private string[] moveledgersColumnHeaders = { "Title", "Serial", "FormerLocation", "LatterLocation"  };
     }
 }
